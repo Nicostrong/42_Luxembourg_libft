@@ -148,6 +148,28 @@ CURRENT_FILE	= 	0
 NB_SRC			=	$(shell find . -type f -name '*.c' | wc -l)
 SLEEP_TIME		=	0.001
 
+define delete_progress
+	@$(RM) $(1) > /dev/null 2>&1
+	@for i in $$(seq 100 -1 0); do \
+		printf "\r\033[K\033[0K"; \
+		if [ $$((i % 4)) -eq 0 ]; then \
+			printf "$(BRED)DELETE - ["; \
+		elif [ $$((i % 4)) -eq 1 ]; then \
+			printf "$(BRED)DELETE / ["; \
+		elif [ $$((i % 4)) -eq 2 ]; then \
+			printf "$(BRED)DELETE | ["; \
+		else \
+			printf "$(BRED)DELETE \\ ["; \
+		fi; \
+		for j in $$(seq 0 $$i); do \
+			printf '='; \
+		done; \
+		printf " %d/100 ]$(RESET)" $$i; \
+		sleep $(SLEEP_TIME); \
+	done
+	@printf "\r\033[K\033[0K$(GREEN)All files $(1) of $(NAME) deleted\n$(WITHE)"
+endef
+
 ################################################################################
 #	Rules                                                                      #
 ################################################################################
@@ -180,25 +202,7 @@ $(NAME):	$(OBJ)
 	@$(CC) $(CFLAGS) -c -o $@ $<
 
 clean:
-	@$(RM) *.o > /dev/null 2>&1
-	@for i in $$(seq 100 -1 0); do \
-		printf "\r\033[K\033[0K"; \
-		if [ $$((i % 4)) -eq 0 ]; then \
-			printf "$(BRED)DELETE - ["; \
-		elif [ $$((i % 4)) -eq 1 ]; then \
-			printf "$(BRED)DELETE / ["; \
-		elif [ $$((i % 4)) -eq 2 ]; then \
-			printf "$(BRED)DELETE | ["; \
-		else \
-			printf "$(BRED)DELETE \\ ["; \
-		fi; \
-		for j in $$(seq 0 $$i); do \
-			printf '='; \
-		done; \
-		printf " %d/100 ]" $$i; \
-		sleep $(SLEEP_TIME); \
-	done
-	@printf "\r\033[K\033[0K$(GREEN)All files *.o of $(LIB_NAME) deleted\n$(WITHE)"
+	$(call delete_progress, *.o)
 
 fclean: 	clean
 	@$(RM) $(LIB_NAME) > /dev/null 2>&1

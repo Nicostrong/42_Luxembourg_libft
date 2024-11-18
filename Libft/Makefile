@@ -6,7 +6,7 @@
 #    By: nfordoxc <nfordoxc@42luxembourg.lu>        +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/02/19 13:47:49 by nfordoxc          #+#    #+#              #
-#    Updated: 2024/11/08 10:07:34 by nfordoxc         ###   Luxembourg.lu      #
+#    Updated: 2024/11/18 11:33:05 by nfordoxc         ###   Luxembourg.lu      #
 #                                                                              #
 # **************************************************************************** #
 
@@ -16,6 +16,7 @@
 
 CC				=	cc
 CFLAGS			=	-Wall -Werror -Wextra -g
+CC_OPT			=	
 
 DEB				=	valgrind
 DEB_OPT			=	--tool=memcheck --leak-check=full --show-leak-kinds=all
@@ -87,16 +88,7 @@ SRC				=	ft_charchr.c \
 					ft_putstrarray.c \
 					ft_putendl_fd.c \
 					ft_putnbr_fd.c \
-					ft_countsection.c \
-					ft_lstnew.c \
-					ft_lstadd_front.c \
-					ft_lstsize.c \
-					ft_lstlast.c \
-					ft_lstadd_back.c \
-					ft_lstdelone.c \
-					ft_lstclear.c \
-					ft_lstiter.c \
-					ft_lstmap.c \
+					ft_countsection.c
 
 OBJ				=	$(SRC:.c=.o)
 
@@ -106,11 +98,32 @@ NAME			=	libft.a
 #	Bonus part                                                                 #
 ################################################################################
 
-BONUS			=
+BONUS			=	ft_lstnew.c \
+					ft_lstadd_front.c \
+					ft_lstsize.c \
+					ft_lstlast.c \
+					ft_lstadd_back.c \
+					ft_lstdelone.c \
+					ft_lstclear.c \
+					ft_lstiter.c \
+					ft_lstmap.c \
 
 OBJ_BONUS		=	$(BONUS:.c=.o)
 
-NAME_BONUS		=	
+NAME_BONUS		=	libft.a
+
+################################################################################
+#	Tester part
+################################################################################
+
+SRC_TESTER		=	
+BONUS_TESTER	=	
+
+OBJ_TESTER		=	
+OBJ_BONUS_TESTER=	
+
+TESTER			=	
+TESTER_BONUS	=	
 
 ################################################################################
 #	Colors																	   #
@@ -145,8 +158,44 @@ BWHITE			=	'\033[1;97m'
 ################################################################################
 
 CURRENT_FILE	= 	0
-NB_SRC			=	$(shell find . -type f -name '*.c' | wc -l)
+NB_SRC			=	$(words $(SRC))
+NB_BONUS		=	$(words $(BONUS))
+NB_TESTER		=	$(words $(SRC_TESTER))
+NB_TESTER_BONUS	=	$(words $(BONUS_TESTER))
 SLEEP_TIME		=	0.001
+
+################################################################################
+#	Functions
+################################################################################
+
+define compile_c_to_o
+	@$(eval CURRENT_FILE=$(shell echo $$(($(CURRENT_FILE)+1))))
+	@$(CC) $(CFLAGS) -c -o $@ $<
+	@printf $(BLUE)"\r\033[K\033[0KCompiling files => $< ["
+	@for i in $$(seq 0 $$(($(CURRENT_FILE)*100/$(NUM_FILES)))); do \
+		printf $(YELLOW)"="; \
+	done
+	@printf $(BBLUE)"] $(CURRENT_FILE)/$(NUM_FILES)$(RESET)"
+	@if [ $(CURRENT_FILE) -eq $(NUM_FILES) ]; then \
+		echo ; \
+	fi
+	@$(eval CURRENT_FILE=$(if \
+		$(filter $(CURRENT_FILE), $(NUM_FILES)), 0, $(CURRENT_FILE)))
+endef
+
+define optimise_lib
+	@printf "$(BYELLOW)Optimisation of $(LIB_NAME)$(YELLOW)\n"
+	@$(LIB_OPTI) $(LIB_NAME) > /dev/null 2>&1
+	@for i in $$(seq 1 50); do \
+		printf "\r\033[K\033[0K["; \
+		for j in $$(seq 1 $$i); do \
+			printf "=="; \
+		done; \
+		printf " %d%% ]" $$((i * 2)); \
+		sleep $(SLEEP_TIME); \
+	done; \
+	echo $(RESET)
+endef
 
 define delete_progress
 	@$(RM) $(1) > /dev/null 2>&1
@@ -167,48 +216,63 @@ define delete_progress
 		printf " %d/100 ]$(RESET)" $$i; \
 		sleep $(SLEEP_TIME); \
 	done
-	@printf "\r\033[K\033[0K$(GREEN)All files $(1) of $(NAME) deleted\n$(WITHE)"
+	@printf "\r\033[K\033[0K$(GREEN)All files $(1) of $(NAME) deleted$(RESET)\n"
+endef
+
+define delete_file
+	@$(RM) $(1) > /dev/null 2>&1
+	@printf "\r\033[K\033[0K$(GREEN)$(1) deleted$(RESET)\n"
 endef
 
 ################################################################################
 #	Rules                                                                      #
 ################################################################################
 
-.PHONY : 	all $(NAME) clean fclean re cafe nico good bad
 
-all: 		$(NAME)
+.PHONY : all $(NAME) optimize bonus deb deb_bonus tester tester_bonus clean fclean re cafe nico good
 
-$(NAME):	$(OBJ)
-	@$(LIB_PROG) $(LIB_NAME) $(OBJ) >/dev/null 2>&1
-	@printf "\n$(BYELLOW)Optimisation of $(LIB_NAME)$(YELLOW)\n"
-	@$(LIB_OPTI) $(LIB_NAME) >/dev/null 2>&1
-	@for i in $$(seq 1 50); do \
-		printf "\r\033[K\033[0K["; \
-		for j in $$(seq 1 $$i); do \
-			printf "=="; \
-		done; \
-		printf " %d%% ]" $$((i * 2)); \
-		sleep $(SLEEP_TIME); \
-	done; \
-	echo
+all: 			$(NAME)
+
+$(NAME):		NUM_FILES=$(NB_SRC)
+$(NAME):		$(OBJ)
+	@$(LIB_PROG) $(LIB_NAME) $(OBJ) > /dev/null 2>&1
+
+bonus:		NUM_FILES=$(NB_BONUS)
+bonus:		$(OBJ_BONUS)
+bonus:		$(NAME)
+	@$(LIB_PROG) $(LIB_NAME) $(OBJ_BONUS) > /dev/null 2>&1
+
+# deb:		tester
+#	$(DEB) ./$(TESTER) $(ARG)
+	
+# deb_bonus:	tester_bonus
+#	$(DEB) ./$(TESTER_BONUS)
 
 %.o : %.c
-	@$(eval CURRENT_FILE=$(shell echo $$(($(CURRENT_FILE)+1))))
-	@printf "\r\033[K\033[0K$(BBLUE)Compiling files *.C => $< ["
-	@for i in $$(seq 0 $$(($(CURRENT_FILE)*100/$(NB_SRC)))); do \
-		printf "="; \
-	done
-	@printf "] $(CURRENT_FILE)/$(NB_SRC)"
-	@$(CC) $(CFLAGS) -c -o $@ $<
+	$(call compile_c_to_o)
+
+optimize:		$(NAME)
+	$(call optimise_lib)
+
+# tester:			NUM_FILES=$(NB_TESTER)
+# tester:			$(OBJ_TESTER)
+# tester:			$(NAME)
+#	@$(CC) $(CFLAGS) $(CC_OPT) $(OBJ_TESTER) $(LIB_DIR) $(LIB_NAME) -o $(TESTER)
+
+# tester_bonus:	NUM_FILES=$(NB_TESTER_BONUS)
+# tester_bonus:	$(OBJ_BONUS_TESTER)
+# tester_bonus:	bonus
+#	@$(CC) $(CFLAGS) $(CC_OPT) $(OBJ_BONUS_TESTER) $(LIB_DIR) $(LIB_NAME) -o $(TESTER_BONUS)
 
 clean:
 	$(call delete_progress, *.o)
 
-fclean: 	clean
-	@$(RM) $(LIB_NAME) > /dev/null 2>&1
-	@printf "\r\033[K\033[0K$(GREEN)$(LIB_NAME) deleted\n$(WITHE)"
+fclean: 		clean
+	$(call delete_file, $(LIB_NAME))
+	$(call delete_file, $(TESTER))
+	$(call delete_file, $(TESTER_BONUS))
 
-re : 		fclean all
+re : 			fclean all
 
 ################################################################################
 #	Extra                                                                      #

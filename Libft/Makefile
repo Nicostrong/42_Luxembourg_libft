@@ -6,7 +6,7 @@
 #    By: nfordoxc <nfordoxc@42luxembourg.lu>        +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/02/19 13:47:49 by nfordoxc          #+#    #+#              #
-#    Updated: 2024/11/18 11:33:05 by nfordoxc         ###   Luxembourg.lu      #
+#    Updated: 2024/11/18 12:54:10 by nfordoxc         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -88,7 +88,8 @@ SRC				=	ft_charchr.c \
 					ft_putstrarray.c \
 					ft_putendl_fd.c \
 					ft_putnbr_fd.c \
-					ft_countsection.c
+					ft_countsection.c \
+					ft_copy_array.c
 
 OBJ				=	$(SRC:.c=.o)
 
@@ -269,8 +270,6 @@ clean:
 
 fclean: 		clean
 	$(call delete_file, $(LIB_NAME))
-	$(call delete_file, $(TESTER))
-	$(call delete_file, $(TESTER_BONUS))
 
 re : 			fclean all
 

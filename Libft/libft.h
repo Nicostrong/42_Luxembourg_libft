@@ -80,8 +80,9 @@ char		*ft_substr(char const *s, unsigned int start, size_t len);
 char		*ft_strnstr(const char *big, const char *little, size_t len);
 
 char		**ft_strarraycpy(char **array);
+char		**ft_copy_strarray(char **array);
 char		**ft_split(char const *s, char c);
-char		**ft_append_str(char **array, char *str);	// TO TESTED
+char		**ft_append_str(char **array, char *str);
 
 void		ft_striteri(char *s, void (*f)(unsigned int, char *));
 
